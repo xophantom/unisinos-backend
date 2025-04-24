@@ -44,12 +44,11 @@ export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
-      .exclude
-      // { path: 'verify-recaptcha', method: RequestMethod.POST },
-      // { path: 'auth/login', method: RequestMethod.POST },
-      // { path: 'tags/:antennaId/check', method: RequestMethod.POST },
-      // { path: '/', method: RequestMethod.GET },
-      ()
+      .exclude(
+        { path: 'auth/login', method: RequestMethod.POST },
+        { path: 'auth/register', method: RequestMethod.POST },
+        { path: '/', method: RequestMethod.GET },
+      )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

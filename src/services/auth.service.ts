@@ -1,46 +1,59 @@
-import { Injectable } from '@nestjs/common';
-import { CognitoUserPool, AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
-import { ConfigService } from '@nestjs/config';
-import { AuthResult } from 'src/domain/interfaces/auth-result.interface';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
+import { LoginDto, RegisterDto } from '../domain/dtos/auth.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  private userPool: CognitoUserPool;
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    private jwtService: JwtService,
+  ) {}
 
-  constructor(private configService: ConfigService) {
-    this.userPool = new CognitoUserPool({
-      UserPoolId: this.configService.get<string>('COGNITO_POOL_ID'),
-      ClientId: this.configService.get<string>('COGNITO_CLIENT_ID'),
+  async register(registerDto: RegisterDto): Promise<{ access_token: string }> {
+    const { name, email, password } = registerDto;
+
+    const existingUser = await this.usersRepository.findOne({ where: { email } });
+    if (existingUser) {
+      throw new UnauthorizedException('Email já está em uso');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = this.usersRepository.create({
+      name,
+      email,
+      password: hashedPassword,
     });
+
+    await this.usersRepository.save(user);
+
+    const payload = { sub: user.id, email: user.email };
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 
-  authenticateUser(email: string, password: string): Promise<AuthResult> {
-    const authenticationDetails = new AuthenticationDetails({
-      Username: email,
-      Password: password,
-    });
+  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
+    const { email, password } = loginDto;
 
-    const userData = {
-      Username: email,
-      Pool: this.userPool,
+    const user = await this.usersRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new UnauthorizedException('Credenciais inválidas');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Credenciais inválidas');
+    }
+
+    const payload = { sub: user.id, email: user.email };
+    return {
+      access_token: await this.jwtService.signAsync(payload),
     };
-
-    const cognitoUser = new CognitoUser(userData);
-
-    return new Promise((resolve, reject) => {
-      cognitoUser.authenticateUser(authenticationDetails, {
-        onSuccess: (result) => {
-          const response: AuthResult = {
-            access_token: result.getAccessToken().getJwtToken(),
-            id_token: result.getIdToken().getJwtToken(),
-            refresh_token: result.getRefreshToken().getToken(),
-          };
-          resolve(response);
-        },
-        onFailure: (err) => {
-          reject(err);
-        },
-      });
-    });
   }
 }

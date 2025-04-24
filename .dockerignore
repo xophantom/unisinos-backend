@@ -1,0 +1,9 @@
+node_modules
+Dockerfile
+.env
+.gitignore
+azure-pipelines-development.yml
+azure-pipelines-production.yml
+README.md
+.vscode
+__tests__

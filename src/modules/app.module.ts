@@ -32,6 +32,7 @@ import { AuthMiddleware } from 'src/middlewares/auth.middleware';
     TotemModule,
     ScheduleModule.forRoot(),
     JwtModule.register({
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '60m' },
     }),
     ConfigModule.forRoot({

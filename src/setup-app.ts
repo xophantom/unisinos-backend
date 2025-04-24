@@ -5,6 +5,7 @@ import { logger } from './tools';
 import { AppModule } from './modules/app.module';
 import { ErrorFilter } from './filters';
 import { ENV } from './config/env';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import 'multer';
 
 export const setupApp = async () => {
@@ -24,6 +25,11 @@ export const setupApp = async () => {
   app.useGlobalFilters(new ErrorFilter());
 
   app.use(logger.expressLogger());
+
+  const config = new DocumentBuilder().setTitle('API').setDescription('API').setVersion('1.0').addBearerAuth().build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   return app;
 };

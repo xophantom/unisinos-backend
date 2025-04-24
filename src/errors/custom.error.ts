@@ -269,33 +269,6 @@ export class PrinterLabelIntegrationApiError extends ServiceUnavailableError {
   }
 }
 
-export class ElfaApiError extends ServiceUnavailableError {
-  constructor({ title, detail }: { title?: string; detail?: string } = {}) {
-    super({
-      title: title || 'Falha ao conectar com a API da Elfa',
-      detail: detail || 'A API da Elfa está temporariamente indisponível.',
-    });
-  }
-}
-
-export class ElfaApiNotFoundError extends ServiceUnavailableError {
-  constructor({ title, detail }: { title?: string; detail?: string } = {}) {
-    super({
-      title: title || 'Erro',
-      detail: detail || 'Erro',
-    });
-  }
-}
-
-export class ElfaApiNotFoundCodeError extends ServiceUnavailableError {
-  constructor({ title, detail }: { title?: string; detail?: string } = {}) {
-    super({
-      title: title || 'Nota de devolução não encontrada!',
-      detail: detail || 'Verifique o código digitado e tente novamente',
-    });
-  }
-}
-
 // ---- Unprocessable Errors ----
 export class NonPreInvoicedProductItemsError extends UnprocessableError {
   constructor() {

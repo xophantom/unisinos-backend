@@ -33,9 +33,9 @@ export const setupApp = async () => {
 
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
-      .setTitle('FCamara Health RFID API')
+      .setTitle('API')
       .setVersion('1.2.0')
-      .setDescription('FCamara Health RFID API')
+      .setDescription('API')
       .addTag('Auth')
       .addTag('Clientes')
       .addTag('Lojas')

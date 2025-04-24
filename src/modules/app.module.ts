@@ -5,7 +5,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ENV } from '../config/env';
 import { RepositoryModule } from './repository.module';
-import { WarehouseModule } from './warehouse.module';
 import { AuthModule } from './auth.module';
 import { TotemModule } from './totem.module';
 import { AuthMiddleware } from 'src/middlewares/auth.middleware';
@@ -39,7 +38,6 @@ import { AuthMiddleware } from 'src/middlewares/auth.middleware';
       isGlobal: true,
     }),
     RepositoryModule,
-    WarehouseModule,
   ],
 })
 export class AppModule {

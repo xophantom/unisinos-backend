@@ -1,35 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-param-reassign */
-import axios, {
-  AxiosInstance,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import type { Request, Response } from 'express';
 import expressWinston from 'express-winston';
-import {
-  createLogger,
-  format,
-  Logger as WinstonLogger,
-  transports,
-} from 'winston';
+import { createLogger, format, Logger as WinstonLogger, transports } from 'winston';
 import { z } from 'zod';
-import {
-  apiBodyFormatter,
-  formatAxiosResponse,
-  formatError,
-  formatWhere,
-  orderFormatter,
-} from './custom-formats';
-import { ILoggerOptions, ILoggerLevel } from '../domain';
+import { apiBodyFormatter, formatAxiosResponse, formatError, formatWhere, orderFormatter } from './custom-formats';
 import { logLevels } from './log-levels';
 import { defaultHeaderBlacklist } from './default-header-blacklist';
+import { ILoggerOptions } from 'src/domain/interfaces/logger-options.interface';
+import { ILoggerLevel } from 'src/domain/interfaces/logger-level.interface';
 
 const booleanLike = z.preprocess((value) => {
   if (value) {
     if (typeof value === 'object') {
-      return Array.isArray(value)
-        ? !!value.length
-        : !!Object.keys(value ?? {}).length;
+      return Array.isArray(value) ? !!value.length : !!Object.keys(value ?? {}).length;
     }
 
     return JSON.parse(value as string);
@@ -67,16 +52,9 @@ export class Logger {
 
   constructor(options: ILoggerOptions = {}) {
     this.options = {
-      level:
-        options.level ||
-        (process.env.LOGGER_LEVEL?.toLowerCase() as ILoggerLevel) ||
-        'debug',
-      prettyPrint:
-        options.prettyPrint ??
-        booleanLike.default(true).parse(process.env.LOGGER_PRETTY),
-      colorize:
-        options.colorize ??
-        booleanLike.default(true).parse(process.env.LOGGER_COLORIZE),
+      level: options.level || (process.env.LOGGER_LEVEL?.toLowerCase() as ILoggerLevel) || 'debug',
+      prettyPrint: options.prettyPrint ?? booleanLike.default(true).parse(process.env.LOGGER_PRETTY),
+      colorize: options.colorize ?? booleanLike.default(true).parse(process.env.LOGGER_COLORIZE),
     };
 
     const formatTag = format((info) => info);
@@ -93,9 +71,7 @@ export class Logger {
           formatWhere(),
           formatTag(),
           format.timestamp(),
-          ...(this.options.label
-            ? [format.label({ label: this.options.label })]
-            : []),
+          ...(this.options.label ? [format.label({ label: this.options.label })] : []),
           ...(this.options.customFormat ? [this.options.customFormat] : []),
           format.json(),
           orderFormatter(),
@@ -111,9 +87,7 @@ export class Logger {
             ...(!this.options.simple && this.options.prettyPrint
               ? [format.prettyPrint({ colorize: this.options.colorize })]
               : []),
-            ...(this.options.colorize
-              ? [format.colorize({ all: true, colors: logLevels.colors })]
-              : []),
+            ...(this.options.colorize ? [format.colorize({ all: true, colors: logLevels.colors })] : []),
           ],
         ),
       }),
@@ -121,29 +95,13 @@ export class Logger {
   }
 
   public expressLogger(options: LoggerMiddlewareOptions = {}) {
-    const {
-      defaultLevel,
-      requestWhitelist,
-      responseWhitelist,
-      errorsLevel,
-      headerBlacklist,
-    } = { ...Logger.defaultOptions, ...options };
+    const { defaultLevel, requestWhitelist, responseWhitelist, errorsLevel, headerBlacklist } = {
+      ...Logger.defaultOptions,
+      ...options,
+    };
 
-    expressWinston.requestWhitelist = [
-      'url',
-      'headers',
-      'method',
-      'query',
-      'body',
-      ...requestWhitelist,
-    ];
-    expressWinston.responseWhitelist = [
-      'statusCode',
-      'headers',
-      'body',
-      'responseTime',
-      ...responseWhitelist,
-    ];
+    expressWinston.requestWhitelist = ['url', 'headers', 'method', 'query', 'body', ...requestWhitelist];
+    expressWinston.responseWhitelist = ['statusCode', 'headers', 'body', 'responseTime', ...responseWhitelist];
 
     return [
       (_, res, next) => {
@@ -199,13 +157,8 @@ export class Logger {
     defaultLevel?: ILoggerLevel;
     errorLevel?: ILoggerLevel;
   }) {
-    const {
-      axiosInstance = axios,
-      defaultLevel = 'info',
-      errorLevel = 'error',
-    } = options || {};
-    const axiosRequestLogger = (config: InternalAxiosRequestConfig<any>) =>
-      config;
+    const { axiosInstance = axios, defaultLevel = 'info', errorLevel = 'error' } = options || {};
+    const axiosRequestLogger = (config: InternalAxiosRequestConfig<any>) => config;
 
     const axiosResponseLogger = (fetch: AxiosResponse<any, any>) => {
       this.log(defaultLevel, 'External Request', { fetch });
@@ -217,15 +170,9 @@ export class Logger {
       throw fetchError;
     };
 
-    axiosInstance.interceptors.request.use(
-      axiosRequestLogger,
-      axiosRejectLogger,
-    );
+    axiosInstance.interceptors.request.use(axiosRequestLogger, axiosRejectLogger);
 
-    axiosInstance.interceptors.response.use(
-      axiosResponseLogger,
-      axiosRejectLogger,
-    );
+    axiosInstance.interceptors.response.use(axiosResponseLogger, axiosRejectLogger);
   }
 
   private log(level: string, message: any, ...meta: IAnyObject[]) {

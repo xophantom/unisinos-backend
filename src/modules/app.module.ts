@@ -7,6 +7,7 @@ import { ENV } from '../config/env';
 import { RepositoryModule } from './repository.module';
 import { WarehouseModule } from './warehouse.module';
 import { AuthModule } from './auth.module';
+import { TotemModule } from './totem.module';
 import { AuthMiddleware } from 'src/middlewares/auth.middleware';
 
 @Module({
@@ -29,6 +30,7 @@ import { AuthMiddleware } from 'src/middlewares/auth.middleware';
       requestTimeout: ENV.DB_TIMEOUT,
     }),
     AuthModule,
+    TotemModule,
     ScheduleModule.forRoot(),
     JwtModule.register({
       signOptions: { expiresIn: '60m' },

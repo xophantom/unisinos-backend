@@ -4,9 +4,11 @@ import { TotemController } from '../controllers/totem.controller';
 import { TotemService } from '../services/totem.service';
 import { Course } from '../entities/course.entity';
 import { Interaction } from '../entities/interaction.entity';
+import { School } from '../entities/school.entity';
+import { Profession } from '../entities/profession.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Course, Interaction])],
+  imports: [TypeOrmModule.forFeature([Course, Interaction, School, Profession])],
   controllers: [TotemController],
   providers: [TotemService],
   exports: [TotemService],

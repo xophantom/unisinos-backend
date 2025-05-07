@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
-    container_name: elite_finder_db
+    image: postgres:latest
+    container_name: elite_finder_postgres
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -12,7 +12,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./seed/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./seed/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - ./seed/seed_professions_1.sql:/docker-entrypoint-initdb.d/03-seed_professions_1.sql
+      - ./seed/seed_professions_2.sql:/docker-entrypoint-initdb.d/04-seed_professions_2.sql
+      - ./seed/seed_professions_3.sql:/docker-entrypoint-initdb.d/05-seed_professions_3.sql
+      - ./seed/seed_professions_4.sql:/docker-entrypoint-initdb.d/06-seed_professions_4.sql
+      - ./seed/seed_professions_5.sql:/docker-entrypoint-initdb.d/07-seed_professions_5.sql
     networks:
       - elite_finder_network
 

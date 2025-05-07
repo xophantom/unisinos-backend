@@ -18,19 +18,39 @@ VALUES (
     CURRENT_TIMESTAMP
 ) ON CONFLICT (email) DO NOTHING;
 
--- Criando tabela de armazéns
-CREATE TABLE IF NOT EXISTS "ARMAZEM" (
-    "ArmazemId" SERIAL PRIMARY KEY,
-    "Codigo" INTEGER UNIQUE NOT NULL,
-    "Nome" VARCHAR(255) NOT NULL,
-    "CNPJ" VARCHAR(14) UNIQUE NOT NULL
+-- Criando tabela de escolas
+CREATE TABLE IF NOT EXISTS "schools" (
+    "id" SERIAL PRIMARY KEY,
+    "name" VARCHAR(100) NOT NULL UNIQUE,
+    "color" VARCHAR(50) NOT NULL,
+    "url" VARCHAR(255) NOT NULL,
+    "isActive" BOOLEAN DEFAULT true
 );
+
+-- Inserindo dados das escolas
+INSERT INTO "schools" ("name", "color", "url") VALUES
+    ('Humanidades', 'laranja', 'https://www.unisinos.br/escolas/humanidades'),
+    ('Politécnica', 'verde', 'https://www.unisinos.br/escolas/politecnica'),
+    ('Saúde', 'verde claro', 'https://www.unisinos.br/escolas/saude'),
+    ('Direito', 'vermelho', 'https://www.unisinos.br/escolas/direito'),
+    ('Gestão e Negócios', 'azul', 'https://www.unisinos.br/escolas/gestao-e-negocios'),
+    ('Indústria Criativa', 'rosa', 'https://www.unisinos.br/escolas/industria-criativa')
+ON CONFLICT (name) DO NOTHING;
 
 -- Criando tabela de cursos
 CREATE TABLE IF NOT EXISTS "courses" (
     "course_id" SERIAL PRIMARY KEY,
     "name" VARCHAR(100) NOT NULL,
-    "description" TEXT
+    "description" TEXT,
+    "school_id" INTEGER REFERENCES "schools"("id")
+);
+
+-- Criando tabela de profissões
+CREATE TABLE IF NOT EXISTS "professions" (
+    "id" SERIAL PRIMARY KEY,
+    "name" VARCHAR(100) NOT NULL,
+    "description" TEXT,
+    "course_id" INTEGER REFERENCES "courses"("course_id")
 );
 
 -- Criando tabela de interações
@@ -46,13 +66,4 @@ CREATE TABLE IF NOT EXISTS "interaction_courses" (
     "interaction_id" INTEGER REFERENCES "interactions"("interaction_id"),
     "course_id" INTEGER REFERENCES "courses"("course_id"),
     PRIMARY KEY ("interaction_id", "course_id")
-);
-
--- Criando tabela de logs da API
-CREATE TABLE IF NOT EXISTS "API_LOGS" (
-    "id" SERIAL PRIMARY KEY,
-    "endpoint" VARCHAR(255) NOT NULL,
-    "request" TEXT NOT NULL,
-    "response" TEXT NOT NULL,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ); 

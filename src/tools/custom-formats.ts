@@ -2,6 +2,7 @@ import { AxiosError, AxiosResponse } from 'axios';
 import esp from 'error-stack-parser';
 import path from 'path';
 import { format } from 'winston';
+import type { TransformableInfo } from 'winston/lib/winston/logger';
 import { defaultHeaderBlacklist } from './default-header-blacklist';
 
 Error.stackTraceLimit = 64;
@@ -42,17 +43,47 @@ export const formatWhere = format((info) => {
   };
 });
 
-export const formatAxiosResponse = format((info) => {
-  const axiosKey = Object.keys(info).find(
-    (key) => !info[key]?.stack && info[key]?.config?.headers?.['User-Agent']?.includes('axios'),
+type ExtendedLogInfo = TransformableInfo & {
+  [key: string]: unknown;
+};
+
+const isAxiosResponse = (obj: unknown): obj is AxiosResponse => {
+  return (
+    typeof obj === 'object' && obj !== null && 'config' in obj && 'data' in obj && 'status' in obj && 'headers' in obj
   );
-  if (axiosKey) {
+};
+
+const isError = (obj: unknown): obj is Error => {
+  return typeof obj === 'object' && obj !== null && 'message' in obj && 'stack' in obj;
+};
+
+export const formatAxiosResponse = format((info: ExtendedLogInfo): ExtendedLogInfo => {
+  const axiosKey = Object.keys(info).find((key) => {
+    const value = info[key];
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      !('stack' in value) &&
+      'config' in value &&
+      typeof value.config === 'object' &&
+      value.config !== null &&
+      'headers' in value.config &&
+      typeof value.config.headers === 'object' &&
+      value.config.headers !== null &&
+      'User-Agent' in value.config.headers &&
+      typeof value.config.headers['User-Agent'] === 'string' &&
+      value.config.headers['User-Agent'].includes('axios')
+    );
+  });
+
+  if (axiosKey && isAxiosResponse(info[axiosKey])) {
+    const response = info[axiosKey];
     const {
       config: { headers: reqHeaders, method, baseURL, url, data, params },
       data: bodyRes,
       headers: resHeaders,
       status,
-    }: AxiosResponse = info[axiosKey];
+    } = response;
 
     if (reqHeaders) {
       Object.keys(reqHeaders).forEach((header) => {
@@ -128,23 +159,23 @@ const formatAxiosError = (axiosError: AxiosError) => {
   };
 };
 
-export const formatError = format((info) => {
-  const errorKey = Object.keys(info).find((key) => info[key] instanceof Error);
+export const formatError = format((info: ExtendedLogInfo): ExtendedLogInfo => {
+  const errorKey = Object.keys(info).find((key) => isError(info[key]));
 
-  if (errorKey) {
+  if (errorKey && isError(info[errorKey])) {
     const error = info[errorKey];
-
     const stack = error.stack ? esp.parse(error).filter(filterTraces).map(parseWhere) : [];
 
-    const { message, isAxiosError, ...otherErrorParams } = error;
+    const { message, isAxiosError, ...otherErrorParams } = error as Error & { isAxiosError?: boolean };
 
-    delete otherErrorParams.stack;
+    const paramsWithoutStack = { ...otherErrorParams };
+    delete paramsWithoutStack.stack;
 
     return {
       ...info,
       errorKey: {
         message,
-        ...(isAxiosError ? formatAxiosError(error) : otherErrorParams),
+        ...(isAxiosError ? formatAxiosError(error as AxiosError) : paramsWithoutStack),
         stack,
       },
     };

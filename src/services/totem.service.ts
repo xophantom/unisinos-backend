@@ -68,7 +68,7 @@ export class TotemService {
       tiedColors.map(async (color) => {
         const school = await this.schoolsRepository.findOne({
           where: { color },
-          select: ['id', 'name', 'color', 'url', 'isActive'],
+          select: ['id', 'name', 'color', 'url', 'isActive', 'quality'],
         });
 
         if (!school) {
@@ -89,7 +89,6 @@ export class TotemService {
       }),
     );
 
-    // Salva a interação com todas as cores empatadas
     await this.createInteraction(totemId, tiedColors, []);
 
     return {

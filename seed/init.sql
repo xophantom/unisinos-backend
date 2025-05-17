@@ -24,17 +24,18 @@ CREATE TABLE IF NOT EXISTS "schools" (
     "name" VARCHAR(100) NOT NULL UNIQUE,
     "color" VARCHAR(50) NOT NULL,
     "url" VARCHAR(255) NOT NULL,
+    "quality" VARCHAR(100) NOT NULL,
     "isActive" BOOLEAN DEFAULT true
 );
 
 -- Inserindo dados das escolas
-INSERT INTO "schools" ("name", "color", "url") VALUES
-    ('Humanidades', 'laranja', 'https://www.unisinos.br/escolas/humanidades'),
-    ('Politécnica', 'verde', 'https://www.unisinos.br/escolas/politecnica'),
-    ('Saúde', 'verde claro', 'https://www.unisinos.br/escolas/saude'),
-    ('Direito', 'vermelho', 'https://www.unisinos.br/escolas/direito'),
-    ('Gestão e Negócios', 'azul', 'https://www.unisinos.br/escolas/gestao-e-negocios'),
-    ('Indústria Criativa', 'rosa', 'https://www.unisinos.br/escolas/industria-criativa')
+INSERT INTO "schools" ("name", "color", "url", "quality") VALUES
+    ('Humanidades', 'laranja', 'https://www.unisinos.br/escolas/humanidades', 'Educar e Impactar a sociedade'),
+    ('Politécnica', 'verde', 'https://www.unisinos.br/escolas/politecnica', 'Construir e Ter raciocínio lógico'),
+    ('Saúde', 'verde claro', 'https://www.unisinos.br/escolas/saude', 'Cuidar e diagnosticar'),
+    ('Direito', 'vermelho', 'https://www.unisinos.br/escolas/direito', 'Defender e argumentar'),
+    ('Gestão e Negócios', 'azul', 'https://www.unisinos.br/escolas/gestao-e-negocios', 'Liderar e Planejar'),
+    ('Indústria Criativa', 'rosa', 'https://www.unisinos.br/escolas/industria-criativa', 'Criar e Comunicar')
 ON CONFLICT (name) DO NOTHING;
 
 -- Criando tabela de cursos

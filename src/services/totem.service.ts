@@ -27,7 +27,7 @@ export class TotemService {
 
     const interaction = this.interactionsRepository.create({
       totemId,
-      selectedColor: selectedColors.join(','), // Armazena todas as cores selecionadas
+      selectedColor: selectedColors.join(','),
       courses,
     });
 

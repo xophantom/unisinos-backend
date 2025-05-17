@@ -1,33 +1,30 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { TotemService } from '../services/totem.service';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Course } from '../entities/course.entity';
 import { ColorAnalysisDto } from 'src/domain/dtos/color-analysis.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ColorAnalysisResponseDto } from 'src/domain/dtos/color-analysis-response.dto';
 
-@ApiTags('Totem')
+@ApiTags('totem')
 @Controller('totem')
 @ApiBearerAuth()
 export class TotemController {
   constructor(private readonly totemService: TotemService) {}
 
   @Get('courses')
-  @ApiOperation({ summary: 'Listar todos os cursos' })
-  @ApiResponse({ status: 200, description: 'Lista de cursos retornada com sucesso' })
-  async listCourses() {
+  @ApiOperation({ summary: 'Lista todos os cursos' })
+  @ApiResponse({ status: 200, type: [Course] })
+  async listCourses(): Promise<Course[]> {
     return this.totemService.listCourses();
   }
 
-  @Post('interactions')
-  @ApiOperation({ summary: 'Criar uma nova interação' })
-  @ApiResponse({ status: 201, description: 'Interação criada com sucesso' })
-  async createInteraction(@Body() body: { totemId: string; selectedColor: string; courseIds: number[] }) {
-    const { totemId, selectedColor, courseIds } = body;
-    return this.totemService.createInteraction(totemId, selectedColor, courseIds);
-  }
-
-  @Post('analyze-colors')
-  @ApiOperation({ summary: 'Analisar as cores selecionadas e determinar a escola de interesse' })
-  @ApiResponse({ status: 200, description: 'Análise concluída com sucesso' })
-  async analyzeColors(@Body() data: ColorAnalysisDto) {
+  @Post(':totemId/analyze-colors')
+  @ApiOperation({ summary: 'Analisa as cores selecionadas e cria uma interação' })
+  @ApiResponse({ status: 201, type: ColorAnalysisResponseDto })
+  async analyzeColors(
+    @Param('totemId') totemId: string,
+    @Body() data: ColorAnalysisDto,
+  ): Promise<ColorAnalysisResponseDto> {
     return this.totemService.analyzeColors(data);
   }
 }

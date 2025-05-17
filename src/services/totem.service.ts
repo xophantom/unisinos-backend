@@ -5,6 +5,7 @@ import { Course } from '../entities/course.entity';
 import { Interaction } from '../entities/interaction.entity';
 import { School } from '../entities/school.entity';
 import { ColorAnalysisDto } from 'src/domain/dtos/color-analysis.dto';
+import { ColorAnalysisResponseDto, SchoolAnalysis } from 'src/domain/dtos/color-analysis-response.dto';
 
 @Injectable()
 export class TotemService {
@@ -21,23 +22,28 @@ export class TotemService {
     return this.coursesRepository.find();
   }
 
-  async createInteraction(totemId: string, selectedColor: string, courseIds: number[]): Promise<Interaction> {
+  async createInteraction(totemId: string, selectedColors: string[], courseIds: number[]): Promise<Interaction> {
     const courses = await this.coursesRepository.findBy({ id: In(courseIds) });
 
     const interaction = this.interactionsRepository.create({
       totemId,
-      selectedColor,
+      selectedColor: selectedColors.join(','), // Armazena todas as cores selecionadas
       courses,
     });
 
     return this.interactionsRepository.save(interaction);
   }
 
-  async analyzeColors(data: ColorAnalysisDto): Promise<{
-    school: School;
-    colorCount: number;
-    courses: Course[];
-  }> {
+  private findTiedColors(colorCount: Record<string, number>): string[] {
+    const sortedColors = Object.entries(colorCount).sort((a, b) => b[1] - a[1]);
+
+    if (sortedColors.length === 0) return [];
+
+    const maxCount = sortedColors[0][1];
+    return sortedColors.filter(([, count]) => count === maxCount).map(([color]) => color);
+  }
+
+  async analyzeColors(data: ColorAnalysisDto): Promise<ColorAnalysisResponseDto> {
     const colorCount = data.colors.reduce(
       (acc, color) => {
         acc[color] = (acc[color] || 0) + 1;
@@ -46,28 +52,51 @@ export class TotemService {
       {} as Record<string, number>,
     );
 
-    const mostFrequentColor = Object.entries(colorCount).sort((a, b) => b[1] - a[1])[0][0];
+    const totalPoints = Object.values(colorCount).reduce((sum, count) => sum + count, 0);
+    const percentageDistribution = Object.entries(colorCount).reduce(
+      (acc, [color, count]) => {
+        acc[color] = (count / totalPoints) * 100;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const school = await this.schoolsRepository.findOne({
-      where: { color: mostFrequentColor },
-      select: ['id', 'name', 'color', 'url', 'isActive'],
-    });
+    const tiedColors = this.findTiedColors(colorCount);
+    const hasTie = tiedColors.length > 1;
 
-    if (!school) {
-      throw new Error(`Nenhuma escola encontrada para a cor ${mostFrequentColor}`);
-    }
+    const schoolsAnalysis: SchoolAnalysis[] = await Promise.all(
+      tiedColors.map(async (color) => {
+        const school = await this.schoolsRepository.findOne({
+          where: { color },
+          select: ['id', 'name', 'color', 'url', 'isActive'],
+        });
 
-    const courses = await this.coursesRepository.find({
-      where: { school: { id: school.id } },
-      relations: ['professions'],
-    });
+        if (!school) {
+          throw new Error(`Nenhuma escola encontrada para a cor ${color}`);
+        }
 
-    await this.createInteraction(data.totemId, mostFrequentColor, []);
+        const courses = await this.coursesRepository.find({
+          where: { school: { id: school.id } },
+          relations: ['professions'],
+        });
+
+        return {
+          school,
+          colorCount: colorCount[color],
+          percentage: percentageDistribution[color],
+          courses,
+        };
+      }),
+    );
+
+    // Salva a interação com todas as cores empatadas
+    await this.createInteraction(data.totemId, tiedColors, []);
 
     return {
-      school,
-      colorCount: colorCount[mostFrequentColor],
-      courses,
+      schools: schoolsAnalysis,
+      colorDistribution: colorCount,
+      percentageDistribution,
+      hasTie,
     };
   }
 }

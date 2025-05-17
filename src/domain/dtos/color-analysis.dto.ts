@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsArray, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import { IsString, IsArray, IsNotEmpty, ArrayMinSize, ArrayMaxSize } from 'class-validator';
 
 export class ColorAnalysisDto {
   @ApiProperty({ description: 'ID do totem' })
   @IsString()
+  @IsNotEmpty()
   totemId: string;
 
   @ApiProperty({
@@ -11,8 +12,9 @@ export class ColorAnalysisDto {
     example: ['laranja', 'laranja', 'verde', 'verde', 'verde', 'vermelho', 'azul'],
   })
   @IsArray()
-  @ArrayMinSize(7)
-  @ArrayMaxSize(7)
   @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(7)
   colors: string[];
 }

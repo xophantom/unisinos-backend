@@ -1,15 +1,13 @@
+import { IsArray, IsString, IsNotEmpty, ArrayMinSize, ArrayMaxSize } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsArray, IsNotEmpty, ArrayMinSize, ArrayMaxSize } from 'class-validator';
 
 export class ColorAnalysisDto {
-  @ApiProperty({ description: 'ID do totem' })
-  @IsString()
-  @IsNotEmpty()
-  totemId: string;
-
   @ApiProperty({
-    description: 'Array de cores selecionadas pelo usuário',
-    example: ['laranja', 'laranja', 'verde', 'verde', 'verde', 'vermelho', 'azul'],
+    description: 'Lista de cores selecionadas pelo usuário',
+    example: ['laranja', 'verde', 'vermelho'],
+    type: [String],
+    minItems: 1,
+    maxItems: 7,
   })
   @IsArray()
   @IsString({ each: true })

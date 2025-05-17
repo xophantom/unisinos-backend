@@ -43,7 +43,7 @@ export class TotemService {
     return sortedColors.filter(([, count]) => count === maxCount).map(([color]) => color);
   }
 
-  async analyzeColors(data: ColorAnalysisDto): Promise<ColorAnalysisResponseDto> {
+  async analyzeColors(totemId: string, data: ColorAnalysisDto): Promise<ColorAnalysisResponseDto> {
     const colorCount = data.colors.reduce(
       (acc, color) => {
         acc[color] = (acc[color] || 0) + 1;
@@ -90,7 +90,7 @@ export class TotemService {
     );
 
     // Salva a interação com todas as cores empatadas
-    await this.createInteraction(data.totemId, tiedColors, []);
+    await this.createInteraction(totemId, tiedColors, []);
 
     return {
       schools: schoolsAnalysis,

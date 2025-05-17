@@ -25,6 +25,6 @@ export class TotemController {
     @Param('totemId') totemId: string,
     @Body() data: ColorAnalysisDto,
   ): Promise<ColorAnalysisResponseDto> {
-    return this.totemService.analyzeColors(data);
+    return this.totemService.analyzeColors(totemId, data);
   }
 }

@@ -14,11 +14,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./seed/init.sql:/docker-entrypoint-initdb.d/01-init.sql
       - ./seed/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
-      - ./seed/seed_professions_1.sql:/docker-entrypoint-initdb.d/03-seed_professions_1.sql
-      - ./seed/seed_professions_2.sql:/docker-entrypoint-initdb.d/04-seed_professions_2.sql
-      - ./seed/seed_professions_3.sql:/docker-entrypoint-initdb.d/05-seed_professions_3.sql
-      - ./seed/seed_professions_4.sql:/docker-entrypoint-initdb.d/06-seed_professions_4.sql
-      - ./seed/seed_professions_5.sql:/docker-entrypoint-initdb.d/07-seed_professions_5.sql
+      - ./seed/industria_criativa.sql:/docker-entrypoint-initdb.d/03-industria_criativa.sql
+      - ./seed/politecnica.sql:/docker-entrypoint-initdb.d/04-politecnica.sql
+      - ./seed/humanidades.sql:/docker-entrypoint-initdb.d/05-humanidades.sql
+      - ./seed/gestao_e_negocios.sql:/docker-entrypoint-initdb.d/06-gestao_e_negocios.sql
+      - ./seed/saude.sql:/docker-entrypoint-initdb.d/07-saude.sql
+      - ./seed/direito.sql:/docker-entrypoint-initdb.d/08-direito.sql
     networks:
       - elite_finder_network
 
@@ -27,4 +28,4 @@ volumes:
 
 networks:
   elite_finder_network:
-    driver: bridge 
+    driver: bridge

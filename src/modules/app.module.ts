@@ -49,6 +49,7 @@ export class AppModule {
         { path: 'auth/login', method: RequestMethod.POST },
         { path: 'auth/register', method: RequestMethod.POST },
         { path: 'totem/:totemId/analyze-colors', method: RequestMethod.POST },
+        { path: 'totem/:totemId/register-interaction', method: RequestMethod.POST },
         { path: '/', method: RequestMethod.GET },
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });

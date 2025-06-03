@@ -89,13 +89,27 @@ export class TotemService {
       }),
     );
 
-    await this.createInteraction(totemId, tiedColors, []);
-
     return {
       schools: schoolsAnalysis,
       colorDistribution: colorCount,
       percentageDistribution,
       hasTie,
     };
+  }
+
+  async registerFinalInteraction(totemId: string, selectedColors: string[], courseIds: number[]): Promise<Interaction> {
+    const courses = await this.coursesRepository.findBy({ id: In(courseIds) });
+
+    if (courses.length !== courseIds.length) {
+      throw new Error('Um ou mais cursos não foram encontrados');
+    }
+
+    const interaction = this.interactionsRepository.create({
+      totemId,
+      selectedColor: selectedColors.join(','),
+      courses,
+    });
+
+    return this.interactionsRepository.save(interaction);
   }
 }
